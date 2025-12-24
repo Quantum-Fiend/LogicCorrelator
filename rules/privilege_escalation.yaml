@@ -1,0 +1,144 @@
+# Privilege Escalation Detection Rules
+
+rules:
+  - name: "UAC Bypass Attempt"
+    id: "PRIV-001"
+    description: "Known UAC bypass techniques detected"
+    severity: HIGH
+    enabled: true
+    mitre_techniques:
+      - T1548.002  # Abuse Elevation Control Mechanism: Bypass User Account Control
+    
+    conditions:
+      - type: process_start
+        process_name: ["eventvwr.exe", "fodhelper.exe", "computerdefaults.exe"]
+        parent_process: ["cmd.exe", "powershell.exe"]
+      
+      - type: registry_change
+        key_path_contains: ["mscfile\\shell\\open\\command", "ms-settings\\shell\\open\\command"]
+        within: 10
+    
+    actions:
+      - alert:
+          message: "UAC bypass attempt detected"
+          severity: HIGH
+          confidence: 0.90
+      - tag:
+          - "privilege_escalation"
+          - "uac_bypass"
+      - export_graph: true
+
+  - name: "Token Impersonation"
+    id: "PRIV-002"
+    description: "Process token manipulation detected"
+    severity: CRITICAL
+    enabled: true
+    mitre_techniques:
+      - T1134  # Access Token Manipulation
+    
+    conditions:
+      - type: process_start
+        process_name: ["incognito.exe", "invoke-tokenmanipulation.ps1"]
+      
+      - type: privilege_escalation
+        success: true
+        within: 30
+        after_previous: true
+    
+    actions:
+      - alert:
+          message: "Token impersonation attack detected"
+          severity: CRITICAL
+          confidence: 0.95
+      - tag:
+          - "privilege_escalation"
+          - "token_impersonation"
+      - export_graph: true
+
+  - name: "Kernel Exploit Attempt"
+    id: "PRIV-003"
+    description: "Known kernel exploit execution"
+    severity: CRITICAL
+    enabled: true
+    mitre_techniques:
+      - T1068  # Exploitation for Privilege Escalation
+    
+    conditions:
+      - type: process_start
+        process_name_contains: ["exploit", "privesc", "elevate"]
+        user: "!SYSTEM"
+      
+      - type: privilege_escalation
+        target_user: "SYSTEM"
+        success: true
+        within: 60
+        after_previous: true
+    
+    actions:
+      - alert:
+          message: "Kernel exploit privilege escalation detected"
+          severity: CRITICAL
+          confidence: 0.92
+      - tag:
+          - "privilege_escalation"
+          - "kernel_exploit"
+      - export_graph: true
+
+  - name: "Service Privilege Escalation"
+    id: "PRIV-004"
+    description: "Unquoted service path or weak permissions exploitation"
+    severity: HIGH
+    enabled: true
+    mitre_techniques:
+      - T1574.009  # Hijack Execution Flow: Path Interception by Unquoted Path
+    
+    conditions:
+      - type: file_access
+        operation: "create"
+        file_path_contains: ["Program Files", "Program Files (x86)"]
+        file_extension: ".exe"
+        user: "!SYSTEM"
+      
+      - type: process_start
+        process_name: "sc.exe"
+        command_line_contains: "start"
+        within: 30
+        after_previous: true
+    
+    actions:
+      - alert:
+          message: "Service privilege escalation attempt"
+          severity: HIGH
+          confidence: 0.80
+      - tag:
+          - "privilege_escalation"
+          - "service_exploitation"
+
+  - name: "Sudo/Su Abuse (Linux)"
+    id: "PRIV-005"
+    description: "Suspicious sudo or su usage patterns"
+    severity: MEDIUM
+    enabled: true
+    mitre_techniques:
+      - T1548.003  # Abuse Elevation Control Mechanism: Sudo and Sudo Caching
+    
+    conditions:
+      - type: process_start
+        process_name: ["sudo", "su"]
+        count: ">= 5"
+        window: 60
+        same_user: true
+      
+      - type: privilege_escalation
+        success: false
+        count: ">= 3"
+        within: 60
+    
+    actions:
+      - alert:
+          message: "Suspicious sudo/su usage detected"
+          severity: MEDIUM
+          confidence: 0.75
+      - tag:
+          - "privilege_escalation"
+          - "sudo_abuse"

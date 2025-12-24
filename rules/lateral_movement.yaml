@@ -1,0 +1,184 @@
+# Lateral Movement Detection Rules
+
+rules:
+  - name: "SMB Lateral Movement"
+    id: "LAT-001"
+    description: "Remote SMB connection followed by process creation"
+    severity: HIGH
+    enabled: true
+    mitre_techniques:
+      - T1021.002  # Remote Services: SMB/Windows Admin Shares
+      - T1570  # Lateral Tool Transfer
+    
+    conditions:
+      - type: network_connect
+        dest_port: [445, 139]
+        direction: "outbound"
+      
+      - type: process_start
+        process_name: ["psexec.exe", "wmic.exe", "sc.exe"]
+        within: 30
+        after_previous: true
+    
+    actions:
+      - alert:
+          message: "Possible SMB lateral movement detected"
+          severity: HIGH
+          confidence: 0.85
+      - tag:
+          - "lateral_movement"
+          - "smb"
+      - export_graph: true
+
+  - name: "WMI Remote Execution"
+    id: "LAT-002"
+    description: "WMI used for remote command execution"
+    severity: HIGH
+    enabled: true
+    mitre_techniques:
+      - T1047  # Windows Management Instrumentation
+      - T1021  # Remote Services
+    
+    conditions:
+      - type: process_start
+        process_name: "wmic.exe"
+        command_line_contains: ["/node:", "process call create"]
+      
+      - type: network_connect
+        dest_port: 135
+        direction: "outbound"
+        within: 10
+    
+    actions:
+      - alert:
+          message: "WMI remote execution detected"
+          severity: HIGH
+          confidence: 0.90
+      - tag:
+          - "lateral_movement"
+          - "wmi"
+      - export_graph: true
+
+  - name: "RDP Lateral Movement Chain"
+    id: "LAT-003"
+    description: "RDP connection followed by suspicious process execution"
+    severity: MEDIUM
+    enabled: true
+    mitre_techniques:
+      - T1021.001  # Remote Services: Remote Desktop Protocol
+    
+    conditions:
+      - type: network_connect
+        dest_port: 3389
+        direction: "outbound"
+      
+      - type: auth_success
+        service: "RDP"
+        within: 60
+        after_previous: true
+      
+      - type: process_start
+        process_name: ["cmd.exe", "powershell.exe", "net.exe"]
+        within: 120
+        after_previous: true
+    
+    actions:
+      - alert:
+          message: "RDP lateral movement with command execution"
+          severity: MEDIUM
+          confidence: 0.75
+      - tag:
+          - "lateral_movement"
+          - "rdp"
+
+  - name: "Pass-the-Hash Attack"
+    id: "LAT-004"
+    description: "NTLM authentication without prior Kerberos authentication"
+    severity: CRITICAL
+    enabled: true
+    mitre_techniques:
+      - T1550.002  # Use Alternate Authentication Material: Pass the Hash
+    
+    conditions:
+      - type: auth_success
+        service: "NTLM"
+        exclude_previous:
+          type: auth_success
+          service: "Kerberos"
+          window: 300
+      
+      - type: network_connect
+        dest_port: [445, 139]
+        within: 10
+        after_previous: true
+    
+    actions:
+      - alert:
+          message: "Possible Pass-the-Hash attack detected"
+          severity: CRITICAL
+          confidence: 0.92
+      - tag:
+          - "lateral_movement"
+          - "pass_the_hash"
+      - export_graph: true
+
+  - name: "Service Installation for Persistence"
+    id: "LAT-005"
+    description: "Remote service installation on multiple hosts"
+    severity: HIGH
+    enabled: true
+    mitre_techniques:
+      - T1021.002  # Remote Services: SMB/Windows Admin Shares
+      - T1543.003  # Create or Modify System Process: Windows Service
+    
+    conditions:
+      - type: process_start
+        process_name: "sc.exe"
+        command_line_contains: ["create", "\\\\"]
+        count: ">= 2"
+        window: 300
+        unique_targets: ">= 2"
+    
+    actions:
+      - alert:
+          message: "Remote service installation on multiple hosts"
+          severity: HIGH
+          confidence: 0.88
+      - tag:
+          - "lateral_movement"
+          - "persistence"
+      - export_graph: true
+
+  - name: "Credential Dumping and Lateral Movement"
+    id: "LAT-006"
+    description: "LSASS access followed by lateral movement"
+    severity: CRITICAL
+    enabled: true
+    mitre_techniques:
+      - T1003.001  # OS Credential Dumping: LSASS Memory
+      - T1021  # Remote Services
+    
+    conditions:
+      - type: process_start
+        process_name: ["procdump.exe", "mimikatz.exe"]
+        command_line_contains: "lsass"
+      
+      - type: network_connect
+        dest_port: [445, 139, 3389]
+        direction: "outbound"
+        within: 300
+        after_previous: true
+      
+      - type: auth_success
+        within: 60
+        after_previous: true
+    
+    actions:
+      - alert:
+          message: "Credential dumping followed by lateral movement"
+          severity: CRITICAL
+          confidence: 0.95
+      - tag:
+          - "credential_dumping"
+          - "lateral_movement"
+      - export_graph: true

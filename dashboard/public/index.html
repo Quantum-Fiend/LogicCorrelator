@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogicCorrelator - Event Correlation Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">🧠</span>
+                <h1>LogicCorrelator</h1>
+            </div>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <span class="stat-label">Events</span>
+                    <span class="stat-value" id="stat-events">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Correlations</span>
+                    <span class="stat-value" id="stat-correlations">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Alerts</span>
+                    <span class="stat-value alert-count" id="stat-alerts">0</span>
+                </div>
+                <div class="connection-status" id="connection-status">
+                    <span class="status-dot"></span>
+                    <span>Connected</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Alert Banner -->
+        <div class="alert-banner" id="alert-banner" style="display: none;">
+            <div class="alert-content">
+                <span class="alert-icon">🚨</span>
+                <div class="alert-details">
+                    <strong id="alert-title"></strong>
+                    <p id="alert-message"></p>
+                </div>
+                <button class="alert-close" onclick="closeAlertBanner()">×</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Live Event Stream -->
+            <section class="card event-stream-card">
+                <div class="card-header">
+                    <h2>📡 Live Event Stream</h2>
+                    <div class="card-controls">
+                        <button class="btn-icon" onclick="toggleEventStream()" title="Pause/Resume">
+                            <span id="stream-toggle">⏸</span>
+                        </button>
+                        <button class="btn-icon" onclick="clearEvents()" title="Clear">🗑</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="event-filters">
+                        <input type="text" id="event-filter" placeholder="Filter events..." class="filter-input">
+                        <select id="event-type-filter" class="filter-select">
+                            <option value="">All Types</option>
+                            <option value="auth_fail">Auth Failures</option>
+                            <option value="auth_success">Auth Success</option>
+                            <option value="process_start">Process Start</option>
+                            <option value="network_connect">Network Connect</option>
+                        </select>
+                    </div>
+                    <div class="event-list" id="event-list">
+                        <div class="empty-state">
+                            <span class="empty-icon">📊</span>
+                            <p>Waiting for events...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Correlation Graph -->
+            <section class="card correlation-card">
+                <div class="card-header">
+                    <h2>🔗 Correlation Graph</h2>
+                    <div class="card-controls">
+                        <button class="btn-icon" onclick="refreshGraph()" title="Refresh">🔄</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="correlation-graph" class="correlation-graph">
+                        <div class="empty-state">
+                            <span class="empty-icon">🕸</span>
+                            <p>No correlations detected yet</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Alert Timeline -->
+            <section class="card alert-timeline-card">
+                <div class="card-header">
+                    <h2>🚨 Alert Timeline</h2>
+                    <div class="severity-filters">
+                        <button class="severity-btn active" data-severity="all" onclick="filterAlerts('all')">All</button>
+                        <button class="severity-btn" data-severity="CRITICAL" onclick="filterAlerts('CRITICAL')">Critical</button>
+                        <button class="severity-btn" data-severity="HIGH" onclick="filterAlerts('HIGH')">High</button>
+                        <button class="severity-btn" data-severity="MEDIUM" onclick="filterAlerts('MEDIUM')">Medium</button>
+                        <button class="severity-btn" data-severity="LOW" onclick="filterAlerts('LOW')">Low</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alert-list" id="alert-list">
+                        <div class="empty-state">
+                            <span class="empty-icon">✅</span>
+                            <p>No alerts - all systems nominal</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Performance Metrics -->
+            <section class="card metrics-card">
+                <div class="card-header">
+                    <h2>📈 Performance Metrics</h2>
+                </div>
+                <div class="card-body">
+                    <div class="metrics-grid">
+                        <div class="metric">
+                            <span class="metric-label">Events/sec</span>
+                            <span class="metric-value" id="metric-eps">0</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Avg Latency</span>
+                            <span class="metric-value" id="metric-latency">0ms</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Rules Active</span>
+                            <span class="metric-value" id="metric-rules">0</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Detection Rate</span>
+                            <span class="metric-value" id="metric-detection">0%</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="performance-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>LogicCorrelator v1.0.0 | Multi-Language Event Correlation Engine</p>
+        <p>Last Update: <span id="last-update">Never</span></p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

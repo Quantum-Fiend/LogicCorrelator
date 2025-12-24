@@ -1,0 +1,151 @@
+{
+    "$schema": "https://aka.ms/terminal-profiles-schema",
+    "defaultProfile": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+    "copyOnSelect": false,
+    "copyFormatting": false,
+    "profiles": {
+        "defaults": {
+            "fontFace": "Cascadia Code",
+            "fontSize": 10,
+            "colorScheme": "LogicCorrelator"
+        },
+        "list": [
+            {
+                "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+                "name": "LogicCorrelator - Main",
+                "commandline": "powershell.exe -NoExit -Command \"Write-Host 'LogicCorrelator SOC Workspace' -ForegroundColor Cyan\"",
+                "startingDirectory": "C:\\Users\\tusha\\OneDrive\\Desktop\\LogicCorrelator",
+                "icon": "🧠",
+                "tabTitle": "Main Control"
+            },
+            {
+                "guid": "{71c54bbd-c2c6-5271-96e7-009a87ff44c0}",
+                "name": "Event Collectors",
+                "commandline": "powershell.exe",
+                "startingDirectory": "C:\\Users\\tusha\\OneDrive\\Desktop\\LogicCorrelator\\collectors",
+                "icon": "📡",
+                "tabTitle": "Collectors",
+                "colorScheme": "Collector"
+            },
+            {
+                "guid": "{81c54bbd-c2c6-5271-96e7-009a87ff44c1}",
+                "name": "Correlation Engine",
+                "commandline": "powershell.exe",
+                "startingDirectory": "C:\\Users\\tusha\\OneDrive\\Desktop\\LogicCorrelator\\engine",
+                "icon": "⚙️",
+                "tabTitle": "Engine",
+                "colorScheme": "Engine"
+            },
+            {
+                "guid": "{91c54bbd-c2c6-5271-96e7-009a87ff44c2}",
+                "name": "Dashboard",
+                "commandline": "powershell.exe",
+                "startingDirectory": "C:\\Users\\tusha\\OneDrive\\Desktop\\LogicCorrelator\\dashboard",
+                "icon": "📊",
+                "tabTitle": "Dashboard",
+                "colorScheme": "Dashboard"
+            },
+            {
+                "guid": "{a1c54bbd-c2c6-5271-96e7-009a87ff44c3}",
+                "name": "Alerts Monitor",
+                "commandline": "powershell.exe -NoExit -Command \"Get-Content -Path alerts.log -Wait -Tail 20\"",
+                "startingDirectory": "C:\\Users\\tusha\\OneDrive\\Desktop\\LogicCorrelator",
+                "icon": "🚨",
+                "tabTitle": "Alerts",
+                "colorScheme": "Alerts"
+            }
+        ]
+    },
+    "schemes": [
+        {
+            "name": "LogicCorrelator",
+            "background": "#0C0E0F",
+            "foreground": "#E0E0E0",
+            "black": "#1E1E1E",
+            "blue": "#4FC3F7",
+            "cyan": "#26C6DA",
+            "green": "#66BB6A",
+            "purple": "#AB47BC",
+            "red": "#EF5350",
+            "white": "#E0E0E0",
+            "yellow": "#FFCA28",
+            "brightBlack": "#424242",
+            "brightBlue": "#81D4FA",
+            "brightCyan": "#4DD0E1",
+            "brightGreen": "#81C784",
+            "brightPurple": "#BA68C8",
+            "brightRed": "#E57373",
+            "brightWhite": "#FAFAFA",
+            "brightYellow": "#FFD54F"
+        },
+        {
+            "name": "Collector",
+            "background": "#0D1117",
+            "foreground": "#26C6DA",
+            "cursorColor": "#26C6DA",
+            "selectionBackground": "#1F4662"
+        },
+        {
+            "name": "Engine",
+            "background": "#0D1117",
+            "foreground": "#AB47BC",
+            "cursorColor": "#AB47BC",
+            "selectionBackground": "#3D2656"
+        },
+        {
+            "name": "Dashboard",
+            "background": "#0D1117",
+            "foreground": "#66BB6A",
+            "cursorColor": "#66BB6A",
+            "selectionBackground": "#1E4620"
+        },
+        {
+            "name": "Alerts",
+            "background": "#0D1117",
+            "foreground": "#EF5350",
+            "cursorColor": "#EF5350",
+            "selectionBackground": "#5C1F1E"
+        }
+    ],
+    "actions": [
+        {
+            "command": {
+                "action": "splitPane",
+                "split": "horizontal",
+                "profile": "Event Collectors"
+            },
+            "keys": "ctrl+shift+1"
+        },
+        {
+            "command": {
+                "action": "splitPane",
+                "split": "vertical",
+                "profile": "Correlation Engine"
+            },
+            "keys": "ctrl+shift+2"
+        },
+        {
+            "command": {
+                "action": "splitPane",
+                "split": "horizontal",
+                "profile": "Dashboard"
+            },
+            "keys": "ctrl+shift+3"
+        },
+        {
+            "command": {
+                "action": "newTab",
+                "profile": "Alerts Monitor"
+            },
+            "keys": "ctrl+shift+a"
+        },
+        {
+            "command": "closePane",
+            "keys": "ctrl+shift+w"
+        }
+    ],
+    "theme": "dark",
+    "useAcrylicInTabRow": true,
+    "showTabsInTitlebar": true,
+    "alwaysShowTabs": true
+}

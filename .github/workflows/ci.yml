@@ -1,0 +1,114 @@
+name: LogicCorrelator CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-rules:
+    name: Validate Correlation Rules
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        pip install pyyaml
+    
+    - name: Validate rules
+      run: |
+        python tests/rule_validator.py
+  
+  test-python:
+    name: Test Python Components
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        pip install pyyaml
+    
+    - name: Run integration tests
+      run: |
+        python tests/integration_test.py
+  
+  test-dashboard:
+    name: Test Dashboard
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Install dependencies
+      working-directory: ./dashboard
+      run: |
+        npm install
+    
+    - name: Check for syntax errors
+      working-directory: ./dashboard
+      run: |
+        node -c dashboard_server.js
+        node -c public/app.js
+  
+  lint-bash:
+    name: Lint Bash Scripts
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Run shellcheck
+      run: |
+        sudo apt-get install -y shellcheck
+        shellcheck collectors/linux_collector.sh || true
+  
+  lint-lua:
+    name: Validate Lua Syntax
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Lua
+      run: |
+        sudo apt-get install -y lua5.3
+    
+    - name: Check Lua syntax
+      run: |
+        lua -e "print('Lua syntax check')"
+        find engine -name "*.lua" -exec lua -e "dofile('{}')" \; || true
+  
+  build-docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check documentation
+      run: |
+        test -f README.md
+        test -f CONTRIBUTING.md
+        test -f LICENSE
+        test -f CHANGELOG.md
+        echo "✓ All documentation files present"

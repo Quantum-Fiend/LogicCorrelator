@@ -1,0 +1,174 @@
+# LogicCorrelator Configuration
+
+# System Settings
+system:
+  name: "LogicCorrelator"
+  version: "1.0.0"
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  
+# Event Collection
+collection:
+  # Event buffer size (number of events to buffer before processing)
+  buffer_size: 1000
+  
+  # Event retention window (seconds)
+  retention_window: 3600
+  
+  # Collection interval (seconds)
+  poll_interval: 5
+  
+  # Enable/disable specific collectors
+  collectors:
+    linux_auth: true
+    linux_process: true
+    linux_network: true
+    windows_security: true
+    windows_process: true
+    windows_registry: true
+    log_files: true
+
+# Correlation Engine
+correlation:
+  # Maximum events to correlate simultaneously
+  max_correlation_events: 10000
+  
+  # Correlation window sizes (seconds)
+  windows:
+    short: 60      # 1 minute
+    medium: 300    # 5 minutes
+    long: 1800     # 30 minutes
+    
+  # Rule evaluation interval (seconds)
+  evaluation_interval: 1
+  
+  # Enable explainable decisions
+  explainable_mode: true
+  
+  # Decision graph export
+  export_graphs: true
+  export_path: "./graphs"
+  
+  # Conflict resolution strategy
+  conflict_resolution:
+    method: "priority"  # priority, severity, confidence
+    accumulate_severity: true
+    confidence_threshold: 0.7
+
+# Alert Settings
+alerts:
+  # Alert destinations
+  destinations:
+    - type: "console"
+      enabled: true
+    - type: "file"
+      enabled: true
+      path: "./alerts.log"
+    - type: "webhook"
+      enabled: false
+      url: "http://localhost:8080/alerts"
+    - type: "dashboard"
+      enabled: true
+      
+  # Alert severity levels
+  severity_levels:
+    - "LOW"
+    - "MEDIUM"
+    - "HIGH"
+    - "CRITICAL"
+    
+  # Minimum severity to alert
+  min_severity: "MEDIUM"
+  
+  # Alert rate limiting
+  rate_limit:
+    enabled: true
+    max_alerts_per_minute: 10
+
+# Dashboard Settings
+dashboard:
+  enabled: true
+  host: "0.0.0.0"
+  port: 3000
+  
+  # WebSocket settings
+  websocket:
+    enabled: true
+    ping_interval: 30
+    
+  # UI settings
+  ui:
+    theme: "dark"
+    refresh_rate: 1000  # milliseconds
+    max_events_display: 100
+
+# Performance Settings
+performance:
+  # Worker threads
+  worker_threads: 4
+  
+  # Event processing batch size
+  batch_size: 100
+  
+  # Memory limits (MB)
+  max_memory: 512
+  
+  # Enable performance metrics
+  metrics_enabled: true
+  metrics_interval: 60  # seconds
+
+# MITRE ATT&CK Integration
+mitre:
+  enabled: true
+  # Path to MITRE ATT&CK data
+  data_path: "./config/mitre_attack.json"
+  # Auto-map techniques
+  auto_mapping: true
+
+# Rule Settings
+rules:
+  # Path to rule files
+  rules_path: "./rules"
+  
+  # Auto-reload rules on change
+  hot_reload: true
+  
+  # Rule validation on load
+  validate_on_load: true
+  
+  # Enable rule simulation mode
+  simulation_mode: false
+
+# Logging
+logging:
+  # Log file path
+  file: "./logs/logiccorrelator.log"
+  
+  # Log rotation
+  rotation:
+    enabled: true
+    max_size_mb: 100
+    backup_count: 5
+    
+  # Component-specific log levels
+  components:
+    collector: "INFO"
+    aggregator: "INFO"
+    engine: "DEBUG"
+    dashboard: "INFO"
+
+# Advanced Features
+features:
+  # DOT graph export
+  dot_export:
+    enabled: true
+    format: "png"  # png, svg, pdf
+    
+  # Rule simulator
+  simulator:
+    enabled: true
+    replay_speed: 1.0  # 1.0 = real-time
+    
+  # Performance profiling
+  profiling:
+    enabled: false
+    output_path: "./profiling"

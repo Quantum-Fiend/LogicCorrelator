@@ -1,0 +1,218 @@
+{
+  "event_types": {
+    "auth_fail": {
+      "description": "Authentication failure event",
+      "fields": {
+        "timestamp": {
+          "type": "string",
+          "format": "ISO8601",
+          "required": true
+        },
+        "user": {
+          "type": "string",
+          "required": true
+        },
+        "source_ip": {
+          "type": "string",
+          "format": "ipv4|ipv6",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "required": false
+        },
+        "service": {
+          "type": "string",
+          "required": false
+        }
+      }
+    },
+    "auth_success": {
+      "description": "Successful authentication event",
+      "fields": {
+        "timestamp": {
+          "type": "string",
+          "format": "ISO8601",
+          "required": true
+        },
+        "user": {
+          "type": "string",
+          "required": true
+        },
+        "source_ip": {
+          "type": "string",
+          "format": "ipv4|ipv6",
+          "required": true
+        },
+        "service": {
+          "type": "string",
+          "required": false
+        }
+      }
+    },
+    "process_start": {
+      "description": "Process creation event",
+      "fields": {
+        "timestamp": {
+          "type": "string",
+          "format": "ISO8601",
+          "required": true
+        },
+        "process_name": {
+          "type": "string",
+          "required": true
+        },
+        "command_line": {
+          "type": "string",
+          "required": false
+        },
+        "pid": {
+          "type": "integer",
+          "required": true
+        },
+        "parent_pid": {
+          "type": "integer",
+          "required": false
+        },
+        "user": {
+          "type": "string",
+          "required": true
+        },
+        "executable_path": {
+          "type": "string",
+          "required": false
+        }
+      }
+    },
+    "network_connect": {
+      "description": "Network connection event",
+      "fields": {
+        "timestamp": {
+          "type": "string",
+          "format": "ISO8601",
+          "required": true
+        },
+        "source_ip": {
+          "type": "string",
+          "format": "ipv4|ipv6",
+          "required": true
+        },
+        "source_port": {
+          "type": "integer",
+          "required": true
+        },
+        "dest_ip": {
+          "type": "string",
+          "format": "ipv4|ipv6",
+          "required": true
+        },
+        "dest_port": {
+          "type": "integer",
+          "required": true
+        },
+        "protocol": {
+          "type": "string",
+          "enum": ["tcp", "udp", "icmp"],
+          "required": true
+        },
+        "process_name": {
+          "type": "string",
+          "required": false
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["inbound", "outbound"],
+          "required": false
+        }
+      }
+    },
+    "file_access": {
+      "description": "File access or modification event",
+      "fields": {
+        "timestamp": {
+          "type": "string",
+          "format": "ISO8601",
+          "required": true
+        },
+        "file_path": {
+          "type": "string",
+          "required": true
+        },
+        "operation": {
+          "type": "string",
+          "enum": ["read", "write", "delete", "create", "modify"],
+          "required": true
+        },
+        "user": {
+          "type": "string",
+          "required": true
+        },
+        "process_name": {
+          "type": "string",
+          "required": false
+        }
+      }
+    },
+    "registry_change": {
+      "description": "Windows registry modification event",
+      "fields": {
+        "timestamp": {
+          "type": "string",
+          "format": "ISO8601",
+          "required": true
+        },
+        "key_path": {
+          "type": "string",
+          "required": true
+        },
+        "value_name": {
+          "type": "string",
+          "required": false
+        },
+        "operation": {
+          "type": "string",
+          "enum": ["create", "modify", "delete"],
+          "required": true
+        },
+        "user": {
+          "type": "string",
+          "required": true
+        },
+        "process_name": {
+          "type": "string",
+          "required": false
+        }
+      }
+    },
+    "privilege_escalation": {
+      "description": "Privilege escalation attempt",
+      "fields": {
+        "timestamp": {
+          "type": "string",
+          "format": "ISO8601",
+          "required": true
+        },
+        "user": {
+          "type": "string",
+          "required": true
+        },
+        "target_user": {
+          "type": "string",
+          "required": false
+        },
+        "method": {
+          "type": "string",
+          "required": false
+        },
+        "success": {
+          "type": "boolean",
+          "required": true
+        }
+      }
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "description": "LogicCorrelator Event Schema Definitions"
+  }
+}

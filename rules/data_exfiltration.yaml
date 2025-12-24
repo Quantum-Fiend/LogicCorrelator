@@ -1,0 +1,171 @@
+# Data Exfiltration Detection Rules
+
+rules:
+  - name: "Large Data Transfer"
+    id: "EXFIL-001"
+    description: "Unusually large outbound data transfer"
+    severity: MEDIUM
+    enabled: true
+    mitre_techniques:
+      - T1041  # Exfiltration Over C2 Channel
+      - T1048  # Exfiltration Over Alternative Protocol
+    
+    conditions:
+      - type: network_connect
+        direction: "outbound"
+        bytes_sent: "> 100MB"
+        duration: "> 60"
+        exclude_ports: [80, 443]  # Exclude normal web traffic
+    
+    actions:
+      - alert:
+          message: "Large outbound data transfer detected"
+          severity: MEDIUM
+          confidence: 0.70
+      - tag:
+          - "exfiltration"
+          - "data_transfer"
+
+  - name: "DNS Tunneling"
+    id: "EXFIL-002"
+    description: "Excessive DNS queries indicating possible tunneling"
+    severity: HIGH
+    enabled: true
+    mitre_techniques:
+      - T1048.003  # Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted/Obfuscated Non-C2 Protocol
+      - T1071.004  # Application Layer Protocol: DNS
+    
+    conditions:
+      - type: network_connect
+        dest_port: 53
+        protocol: "udp"
+        count: "> 100"
+        window: 60
+        same_source: true
+        query_length: "> 50"  # Long DNS queries
+    
+    actions:
+      - alert:
+          message: "Possible DNS tunneling detected"
+          severity: HIGH
+          confidence: 0.85
+      - tag:
+          - "exfiltration"
+          - "dns_tunneling"
+      - export_graph: true
+
+  - name: "File Archive and Upload"
+    id: "EXFIL-003"
+    description: "File compression followed by external upload"
+    severity: HIGH
+    enabled: true
+    mitre_techniques:
+      - T1560  # Archive Collected Data
+      - T1041  # Exfiltration Over C2 Channel
+    
+    conditions:
+      - type: process_start
+        process_name: ["7z.exe", "winrar.exe", "tar.exe", "zip.exe"]
+        command_line_contains: ["-r", "--recursive"]
+      
+      - type: network_connect
+        direction: "outbound"
+        dest_port: [21, 22, 80, 443, 8080]
+        within: 300
+        after_previous: true
+        bytes_sent: "> 10MB"
+    
+    actions:
+      - alert:
+          message: "File archival followed by upload detected"
+          severity: HIGH
+          confidence: 0.88
+      - tag:
+          - "exfiltration"
+          - "file_archive"
+      - export_graph: true
+
+  - name: "Cloud Storage Upload"
+    id: "EXFIL-004"
+    description: "Large upload to cloud storage services"
+    severity: MEDIUM
+    enabled: true
+    mitre_techniques:
+      - T1567.002  # Exfiltration Over Web Service: Exfiltration to Cloud Storage
+    
+    conditions:
+      - type: network_connect
+        direction: "outbound"
+        dest_domain: ["dropbox.com", "drive.google.com", "onedrive.live.com", "box.com"]
+        bytes_sent: "> 50MB"
+        exclude_users: ["backup_service"]
+    
+    actions:
+      - alert:
+          message: "Large upload to cloud storage detected"
+          severity: MEDIUM
+          confidence: 0.75
+      - tag:
+          - "exfiltration"
+          - "cloud_storage"
+
+  - name: "Scheduled Task for Exfiltration"
+    id: "EXFIL-005"
+    description: "Scheduled task created for periodic data exfiltration"
+    severity: HIGH
+    enabled: true
+    mitre_techniques:
+      - T1053.005  # Scheduled Task/Job: Scheduled Task
+      - T1041  # Exfiltration Over C2 Channel
+    
+    conditions:
+      - type: process_start
+        process_name: "schtasks.exe"
+        command_line_contains: ["/create", "/tr"]
+      
+      - type: network_connect
+        direction: "outbound"
+        recurring: true
+        interval: "< 3600"
+        count: ">= 3"
+        window: 7200
+    
+    actions:
+      - alert:
+          message: "Scheduled task with recurring outbound connections"
+          severity: HIGH
+          confidence: 0.82
+      - tag:
+          - "exfiltration"
+          - "persistence"
+      - export_graph: true
+
+  - name: "Steganography Exfiltration"
+    id: "EXFIL-006"
+    description: "Image file modification followed by upload"
+    severity: MEDIUM
+    enabled: true
+    mitre_techniques:
+      - T1027.003  # Obfuscated Files or Information: Steganography
+      - T1041  # Exfiltration Over C2 Channel
+    
+    conditions:
+      - type: file_access
+        operation: "modify"
+        file_extension: [".jpg", ".png", ".bmp", ".gif"]
+        count: ">= 5"
+        window: 300
+      
+      - type: network_connect
+        direction: "outbound"
+        within: 600
+        after_previous: true
+    
+    actions:
+      - alert:
+          message: "Possible steganography-based exfiltration"
+          severity: MEDIUM
+          confidence: 0.65
+      - tag:
+          - "exfiltration"
+          - "steganography"
