@@ -131,10 +131,10 @@ LogicCorrelator uses **9 programming languages**, each with a specific, logical 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        EVENT SOURCES                            │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
-│  │     Bash     │  │  PowerShell  │  │     AWK      │          │
-│  │   (Linux)    │  │  (Windows)   │  │   (Logs)     │          │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
+│  │     Bash     │  │  PowerShell  │  │     AWK      │           │
+│  │   (Linux)    │  │  (Windows)   │  │   (Logs)     │           │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘           │
 └─────────┼──────────────────┼──────────────────┼─────────────────┘
           │                  │                  │
           └──────────────────┼──────────────────┘
@@ -387,16 +387,16 @@ The LogicCorrelator dashboard provides real-time visibility into your security p
 ┌─────────────────────────────────────────────────────────────┐
 │  🧠 LogicCorrelator    Events: 1,234  Alerts: 12  Status: ● │
 ├─────────────────────────────────────────────────────────────┤
-│                                                               │
-│  📡 Live Event Stream          🔗 Correlation Graph          │
+│                                                             │
+│  📡 Live Event Stream          🔗 Correlation Graph        │
 │  ┌──────────────────┐          ┌──────────────────┐         │
 │  │ 🔴 auth_fail     │          │                  │         │
 │  │ 🟢 auth_success  │          │    ●─────●       │         │
 │  │ ⚙️  process_start│          │    │     │       │         │
 │  │ 🌐 network_conn  │          │    ●─────●─────● │         │
 │  └──────────────────┘          └──────────────────┘         │
-│                                                               │
-│  🚨 Alert Timeline             📈 Performance                │
+│                                                             │
+│  🚨 Alert Timeline             📈 Performance              │
 │  ┌──────────────────┐          ┌──────────────────┐         │
 │  │ 🔴 CRITICAL: ... │          │ EPS: 45          │         │
 │  │ 🟠 HIGH: ...     │          │ Latency: 23ms    │         │
