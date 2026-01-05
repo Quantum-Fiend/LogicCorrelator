@@ -80,6 +80,13 @@ function handleWebSocketMessage(message) {
             handleNewCorrelation(message.data);
             break;
 
+        case 'correlation_update':
+            // Handle response from get_correlations or initial load payload
+            if (message.data) {
+                renderCorrelationGraph(message.data);
+            }
+            break;
+
         case 'stats_update':
             updateStats(message.data);
             break;
@@ -103,6 +110,10 @@ function handleInitialState(data) {
     if (data.alerts) {
         alerts = data.alerts;
         renderAlerts();
+    }
+
+    if (data.correlations && data.correlations.length > 0) {
+        renderCorrelationGraph(data.correlations[0]);
     }
 
     if (data.stats) {
@@ -289,20 +300,156 @@ function closeAlertBanner() {
     document.getElementById('alert-banner').style.display = 'none';
 }
 
-// Render correlation graph (simplified)
-function renderCorrelationGraph(correlation) {
-    const graphContainer = document.getElementById('correlation-graph');
+// Render correlation graph with Cytoscape.js
+let cy = null;
 
-    // Simple visualization - in production would use D3.js or Cytoscape.js
-    graphContainer.innerHTML = `
-        <div class="correlation-node">
-            <div class="node-label">Correlation Detected</div>
-            <div class="node-details">
-                <p>Rule: ${correlation.rule_name || 'Unknown'}</p>
-                <p>Events: ${correlation.event_count || 0}</p>
-            </div>
-        </div>
-    `;
+function initGraph() {
+    if (cy) return;
+
+    const container = document.getElementById('correlation-graph');
+    container.innerHTML = ''; // Clear placeholder
+
+    // Fix: Remove flex styling and ensure size
+    container.style.display = 'block';
+    container.style.width = '100%';
+    container.style.height = '100%';
+
+    cy = cytoscape({
+        container: container,
+
+        style: [
+            {
+                selector: 'node',
+                style: {
+                    'background-color': '#3b82f6', // accent-primary
+                    'label': 'data(label)',
+                    'color': '#f9fafb', // text-primary
+                    'font-size': '12px',
+                    'font-family': 'Inter, sans-serif',
+                    'text-valign': 'bottom',
+                    'text-margin-y': 5,
+                    'width': 40,
+                    'height': 40,
+                    'border-width': 2,
+                    'border-color': '#1f2937',
+                    'overlay-opacity': 0
+                }
+            },
+            {
+                selector: 'node[type="user"]',
+                style: {
+                    'background-color': '#8b5cf6', // accent-secondary
+                    'shape': 'ellipse'
+                }
+            },
+            {
+                selector: 'node[type="ip"]',
+                style: {
+                    'background-color': '#10b981', // accent-success
+                    'shape': 'round-rectangle'
+                }
+            },
+            {
+                selector: 'node[type="process"]',
+                style: {
+                    'background-color': '#f59e0b', // accent-warning
+                    'shape': 'cut-rectangle'
+                }
+            },
+            {
+                selector: 'node[type="alert"]',
+                style: {
+                    'background-color': '#ef4444', // accent-danger
+                    'shape': 'diamond',
+                    'width': 50,
+                    'height': 50
+                }
+            },
+            {
+                selector: 'edge',
+                style: {
+                    'width': 2,
+                    'line-color': '#4b5563', // border-color
+                    'target-arrow-color': '#4b5563',
+                    'target-arrow-shape': 'triangle',
+                    'curve-style': 'bezier',
+                    'label': 'data(label)',
+                    'font-size': '10px',
+                    'color': '#9ca3af', // text-secondary
+                    'text-rotation': 'autorotate',
+                    'text-background-color': '#111827', // bg-secondary
+                    'text-background-opacity': 0.8,
+                    'text-background-padding': 2
+                }
+            }
+        ],
+
+        layout: {
+            name: 'cose',
+            animate: true,
+            randomize: true,
+            componentSpacing: 100,
+            nodeRepulsion: 400000,
+            nodeOverlap: 10,
+            idealEdgeLength: 100,
+            edgeElasticity: 100,
+            nestingFactor: 5,
+            gravity: 80,
+            numIter: 1000,
+            initialTemp: 200,
+            coolingFactor: 0.95,
+            minTemp: 1.0
+        }
+    });
+
+    // Resize on window resize
+    window.addEventListener('resize', () => cy.resize());
+}
+
+function renderCorrelationGraph(correlation) {
+    // Initialize graph if not already done
+    if (!cy) initGraph();
+
+    if (!correlation.graph) {
+        // Fallback for simple updates
+        return;
+    }
+
+    const { nodes, edges } = correlation.graph;
+
+    // Add nodes
+    nodes.forEach(node => {
+        if (cy.getElementById(node.id).empty()) {
+            cy.add({
+                group: 'nodes',
+                data: node
+            });
+        }
+    });
+
+    // Add edges
+    edges.forEach(edge => {
+        const edgeId = `${edge.source}-${edge.target}`;
+        if (cy.getElementById(edgeId).empty()) {
+            cy.add({
+                group: 'edges',
+                data: { id: edgeId, ...edge }
+            });
+        }
+    });
+
+    // Rerun layout
+    const layout = cy.layout({
+        name: 'cose',
+        animate: true,
+        animationDuration: 500
+    });
+    layout.run();
+
+    // Center logic
+    cy.resize();
+    cy.center();
+    cy.fit(null, 50);
 }
 
 // Update stats display

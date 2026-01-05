@@ -47,6 +47,7 @@ wss.on('connection', (ws) => {
         data: {
             events: state.events.slice(-50),
             alerts: state.alerts.slice(-20),
+            correlations: state.correlations.slice(-1), // Send last correlation
             stats: state.stats
         }
     }));
@@ -86,6 +87,13 @@ function handleWebSocketMessage(ws, data) {
             ws.send(JSON.stringify({
                 type: 'alerts_update',
                 data: state.alerts.slice(-50)
+            }));
+            break;
+
+        case 'get_correlations':
+            ws.send(JSON.stringify({
+                type: 'correlation_update', // Singular to match existing handler logic expectation
+                data: state.correlations.length > 0 ? state.correlations[state.correlations.length - 1] : null
             }));
             break;
 
